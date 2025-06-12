@@ -1,0 +1,42 @@
+@media print {
+    /* Hide everything except the bill */
+    body * {
+        visibility: hidden;
+    }
+    
+    /* Only show the bill section */
+    .receipt-container, .receipt-container * {
+        visibility: visible;
+    }
+    
+    /* Position the bill properly */
+    .receipt-container {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        margin: 0;
+        padding: 0;
+    }
+    
+    /* Remove background colors for printing */
+    .receipt-paper {
+        background-color: white !important;
+        box-shadow: none !important;
+        border: none !important;
+    }
+    
+    /* Hide print button when printing */
+    .no-print {
+        display: none !important;
+    }
+    
+    /* Add thank you message */
+    .receipt-container::after {
+        content: "Thank you, Visit Again!";
+        display: block;
+        text-align: center;
+        margin-top: 20px;
+        font-weight: bold;
+    }
+}

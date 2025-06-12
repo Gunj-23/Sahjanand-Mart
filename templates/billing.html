@@ -1,0 +1,193 @@
+{% extends "base.html" %}
+
+{% block title %}Billing - Sahjanand Mart{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-6">
+    <h1 class="text-3xl font-bold mb-6 text-gray-800">Billing</h1>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Product Search Section -->
+        <div class="lg:col-span-1">
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <h2 class="text-xl font-semibold mb-4 text-gray-700">Add Products</h2>
+                <div class="mb-4 space-y-3">
+                    <div class="flex space-x-2">
+                        <button id="scanQRBtn" class="flex-1 bg-green-600 text-white py-2 px-4 rounded hover:bg-green-700 transition-colors flex items-center justify-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h8a2 2 0 012 2v12a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 0v12h8V4H6z" clip-rule="evenodd" />
+                                <path d="M9 7a1 1 0 011-1h1a1 1 0 110 2h-1a1 1 0 01-1-1zM7 9a1 1 0 100 2h1a1 1 0 100-2H7z" />
+                            </svg>
+                            Scan QR/Barcode
+                        </button>
+                    </div>
+                    <input type="text" id="barcodeInput" placeholder="Enter barcode manually" 
+                           class="w-full p-2 border border-gray-300 rounded-md hidden focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                    <div class="relative">
+                        <input type="text" id="productSearch" placeholder="Search products by name..." 
+                               class="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <ul id="productList" class="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-y-auto hidden"></ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Receipt Section -->
+        <div class="lg:col-span-2">
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <div class="text-center mb-4">
+                    <h2 class="text-2xl font-bold text-gray-800">Sahjanand Mart</h2>
+                    <p class="text-sm text-gray-600">Nr. Sahjanand Parlour, Bakrol - Vadtal Road, Jol- 388315, Anand, Gujarat</p>
+                    <p class="text-sm text-gray-600">GSTIN: 22ABCDE1234F1Z5</p>
+                    <p id="receiptDate" class="text-sm text-gray-600 mt-1"></p>
+                </div>
+                
+                <hr class="border-gray-300 my-2">
+                
+                <div class="mb-4 overflow-x-auto">
+                    <table class="w-full">
+                        <thead>
+                            <tr class="border-b border-gray-300">
+                                <th class="text-left py-2 font-medium text-gray-700">Item</th>
+                                <th class="text-center py-2 font-medium text-gray-700">Qty</th>
+                                <th class="text-right py-2 font-medium text-gray-700">Price</th>
+                                <th class="text-right py-2 font-medium text-gray-700">Total</th>
+                                <th class="w-8"></th>
+                            </tr>
+                        </thead>
+                        <tbody id="cartItems" class="divide-y divide-gray-200"></tbody>
+                    </table>
+                </div>
+                
+                <hr class="border-gray-300 my-2">
+                
+                <div class="flex justify-between items-center mb-2">
+                    <h3 class="text-lg font-semibold text-gray-700">Subtotal:</h3>
+                    <p class="text-lg" id="subtotalAmount">₹0.00</p>
+                </div>
+                
+                <div class="flex justify-between items-center mb-2">
+                    <h3 class="text-lg font-semibold text-gray-700">Tax (5%):</h3>
+                    <p class="text-lg" id="taxAmount">₹0.00</p>
+                </div>
+                
+                <div class="flex justify-between items-center border-t pt-2">
+                    <h3 class="text-xl font-bold text-gray-800">Total Amount:</h3>
+                    <p class="text-xl font-bold" id="totalAmount">₹0.00</p>
+                </div>
+                
+                <div class="mt-4 text-sm text-gray-600">
+                    <p><span class="font-medium">Payment Mode:</span> <span id="printPaymentMode">Cash</span></p>
+                    <p class="mt-1">Thank you for shopping with us!</p>
+                </div>
+                
+                <!-- Action Buttons -->
+                <div class="mt-6 space-y-3 no-print">
+                    <div class="flex items-center space-x-4">
+                        <label for="paymentMode" class="font-medium text-gray-700">Payment Mode:</label>
+                        <select id="paymentMode" class="border border-gray-300 rounded-md p-2 flex-1 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            <option value="cash">Cash</option>
+                            <option value="upi">UPI</option>
+                            <option value="card">Credit/Debit Card</option>
+                        </select>
+                    </div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <button id="checkoutBtn" class="bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors flex items-center justify-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd" />
+                            </svg>
+                            Complete Sale
+                        </button>
+                        <button id="printBillBtn" class="bg-gray-600 text-white py-2 px-4 rounded-md hover:bg-gray-700 transition-colors flex items-center justify-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M5 4v3H4a2 2 0 00-2 2v3a2 2 0 002 2h1v2a2 2 0 002 2h6a2 2 0 002-2v-2h1a2 2 0 002-2V9a2 2 0 00-2-2h-1V4a2 2 0 00-2-2H7a2 2 0 00-2 2zm8 0H7v3h6V4zm0 8H7v4h6v-4z" clip-rule="evenodd" />
+                            </svg>
+                            Print Bill
+                        </button>
+                    </div>
+                    <button id="clearCartBtn" class="w-full bg-red-600 text-white py-2 px-4 rounded-md hover:bg-red-700 transition-colors">
+                        Clear Cart
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/billing.js') }}"></script>
+<style>
+    @media print {
+        body * {
+            visibility: hidden;
+        }
+        .receipt-container, .receipt-container * {
+            visibility: visible;
+        }
+        .receipt-container {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+        }
+        .no-print {
+            display: none !important;
+        }
+        @page {
+            size: auto;
+            margin: 0mm;
+        }
+    }
+    
+    /* Product list styling */
+    #productList li {
+        padding: 8px 12px;
+        cursor: pointer;
+        transition: background-color 0.2s;
+    }
+    
+    #productList li:hover {
+        background-color: #f3f4f6;
+    }
+    
+    /* Cart item styling */
+    .bill-item td {
+        padding: 8px 4px;
+    }
+    
+    /* Quantity input styling */
+    .quantity-input {
+        width: 60px;
+        text-align: center;
+    }
+    
+    /* Remove button styling */
+    .remove-item {
+        cursor: pointer;
+        font-size: 1.2rem;
+        line-height: 1;
+    }
+    
+    /* Payment mode dropdown */
+    #paymentMode {
+        min-width: 150px;
+    }
+</style>
+
+<script>
+    // Set current date on receipt
+    document.addEventListener('DOMContentLoaded', function() {
+        const now = new Date();
+        const options = { 
+            weekday: 'long', 
+            year: 'numeric', 
+            month: 'long', 
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        };
+        document.getElementById('receiptDate').textContent = now.toLocaleDateString('en-IN', options);
+    });
+</script>
+{% endblock %}

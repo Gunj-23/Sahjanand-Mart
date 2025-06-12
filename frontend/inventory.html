@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Inventory - Sahjanand Mart</title>
+
+  <!-- ✅ Tailwind CSS (Optional CDN, remove if already built locally) -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- ✅ Axios CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
+  <!-- ✅ Your Custom CSS (Optional) -->
+  <link rel="stylesheet" href="/static/css/custom.css" />
+</head>
+<body class="bg-gray-100 p-6">
+  <div class="max-w-5xl mx-auto bg-white p-6 rounded shadow">
+    <h1 class="text-3xl font-bold mb-6 text-blue-800">📦 Product Inventory</h1>
+
+    <table class="w-full table-auto border border-gray-300">
+      <thead>
+        <tr class="bg-gray-200 text-left">
+          <th class="p-2 border border-gray-300">#</th>
+          <th class="p-2 border border-gray-300">Name</th>
+          <th class="p-2 border border-gray-300">Barcode</th>
+          <th class="p-2 border border-gray-300">Price</th>
+          <th class="p-2 border border-gray-300">Stock</th>
+        </tr>
+      </thead>
+      <tbody id="productTable" class="bg-white"></tbody>
+    </table>
+  </div>
+
+  <script>
+    async function fetchProducts() {
+      try {
+        const res = await axios.get('/api/products/');
+        const products = res.data;
+        const table = document.getElementById('productTable');
+        table.innerHTML = ''; // Clear any previous data
+
+        if (!products.length) {
+          table.innerHTML = '<tr><td colspan="5" class="p-4 text-center text-gray-500">No products found.</td></tr>';
+          return;
+        }
+
+        products.forEach((p, i) => {
+          const row = document.createElement('tr');
+          row.classList.add('hover:bg-gray-50');
+          row.innerHTML = `
+            <td class="p-2 border border-gray-300">${i + 1}</td>
+            <td class="p-2 border border-gray-300">${p.name}</td>
+            <td class="p-2 border border-gray-300">${p.barcode}</td>
+            <td class="p-2 border border-gray-300">₹${p.price}</td>
+            <td class="p-2 border border-gray-300">${p.stock}</td>
+          `;
+          table.appendChild(row);
+        });
+      } catch (err) {
+        console.error(err);
+        alert("❌ Error loading inventory. Please check the console or API.");
+      }
+    }
+
+    // Load on page load
+    fetchProducts();
+  </script>
+</body>
+</html>

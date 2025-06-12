@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Billing - Sahjanand Mart</title>
+  <link rel="stylesheet" href="/static/css/custom.css">
+  
+  <script src="/static/js/utils.js"></script>
+</head>
+<body class="bg-gray-50 text-gray-800">
+  <div id="navbar"></div>
+
+  <div class="max-w-4xl mx-auto mt-8 p-6 bg-white rounded-xl shadow">
+    <form id="billing-form" onsubmit="addItem(event)">
+      <label class="block mb-2 font-medium">Scan Barcode:</label>
+      <input id="barcode" autofocus class="w-full p-3 border rounded mb-4 focus:outline-blue-600" required placeholder="Scan or Enter Barcode">
+      <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700">Add Item</button>
+    </form>
+
+    <div class="mt-6">
+      <table class="w-full table-auto border text-sm text-left">
+        <thead class="bg-gray-200 text-gray-700">
+          <tr>
+            <th class="px-3 py-2">Product</th>
+            <th class="px-3 py-2">Qty</th>
+            <th class="px-3 py-2">Price</th>
+            <th class="px-3 py-2">Total</th>
+          </tr>
+        </thead>
+        <tbody id="item-list"></tbody>
+      </table>
+    </div>
+
+    <div class="mt-6 flex justify-between items-center">
+      <div class="text-xl font-semibold">Total: ₹<span id="total">0.00</span></div>
+      <button onclick="window.print()" class="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700">🖨️ Print Bill</button>
+    </div>
+  </div>
+
+  <script>
+    document.getElementById("navbar").innerHTML = `<nav class="bg-gradient-to-r from-blue-800 to-blue-600 text-white px-6 py-4 shadow-md flex justify-between items-center">
+  <h1 class="text-xl font-semibold tracking-wide">🛒 Sahjanand Mart</h1>
+  <div class="flex gap-4 text-sm">
+    <a href="billing.html" class="hover:underline">Billing</a>
+    <a href="inventory.html" class="hover:underline">Inventory</a>
+    <a href="add_product.html" class="hover:underline">Add Product</a>
+    <a href="edit_product.html" class="hover:underline">Edit Product</a>
+    <a href="bill_history.html" class="hover:underline">Bill History</a>
+    <a href="dashboard.html" class="hover:underline">Dashboard</a>
+  </div>
+</nav>`;
+
+    let cart = [];
+    async function addItem(e) {
+      e.preventDefault();
+      const barcode = document.getElementById("barcode").value;
+      try {
+        const res = await axios.get('/api/products/');
+        const product = res.data.find(p => p.barcode === barcode);
+        if (!product) return alert("Product not found");
+
+        const existing = cart.find(i => i.barcode === barcode);
+        if (existing) {
+          existing.qty += 1;
+        } else {
+          cart.push({ ...product, qty: 1 });
+        }
+
+        document.getElementById("barcode").value = "";
+        updateCart();
+      } catch (err) {
+        alert("Error adding item.");
+      }
+    }
+
+    function updateCart() {
+      const list = document.getElementById("item-list");
+      list.innerHTML = "";
+      let total = 0;
+
+      cart.forEach(item => {
+        const row = document.createElement("tr");
+        const itemTotal = item.qty * item.price;
+        total += itemTotal;
+
+        row.innerHTML = `
+          <td class="px-3 py-2">${item.name}</td>
+          <td class="px-3 py-2">${item.qty}</td>
+          <td class="px-3 py-2">₹${item.price}</td>
+          <td class="px-3 py-2">₹${itemTotal.toFixed(2)}</td>
+        `;
+        list.appendChild(row);
+      });
+
+      document.getElementById("total").textContent = total.toFixed(2);
+    }
+  </script>
+</body>
+</html>

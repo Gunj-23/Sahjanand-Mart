@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sahjanand Mart - {% block title %}{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="{{ url_for('static', filename='css/styles.css') }}" rel="stylesheet">
+    {% block extra_head %}{% endblock %}
+</head>
+<body class="bg-gray-100">
+    <div class="flex h-screen">
+        <div class="w-64 bg-blue-800 text-white p-4">
+            <div class="text-2xl font-bold mb-8">Sahjanand Mart</div>
+            <nav>
+                <ul class="space-y-2">
+                    <li><a href="{{ url_for('dashboard') }}" class="block py-2 px-4 {% if request.path == '/' %}bg-blue-700{% else %}hover:bg-blue-700{% endif %} rounded">Dashboard</a></li>
+                    <li><a href="{{ url_for('billing') }}" class="block py-2 px-4 {% if request.path == '/billing' %}bg-blue-700{% else %}hover:bg-blue-700{% endif %} rounded">Billing</a></li>
+                    <li><a href="{{ url_for('inventory') }}" class="block py-2 px-4 {% if request.path == '/inventory' %}bg-blue-700{% else %}hover:bg-blue-700{% endif %} rounded">Inventory</a></li>
+                </ul>
+            </nav>
+        </div>
+
+        <div class="flex-1 p-8">
+            {% block content %}{% endblock %}
+        </div>
+    </div>
+
+    {% block scripts %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Dashboard - Sahjanand Mart</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="bg-gray-50 text-gray-800">
+  <div id="navbar"></div>
+
+  <div class="max-w-6xl mx-auto mt-8 space-y-8">
+    <h2 class="text-2xl font-semibold mb-2 text-center">📊 Dashboard Overview</h2>
+
+    <div class="bg-white rounded-xl shadow p-6">
+      <h3 class="text-xl font-semibold mb-4">Total Sales (Last 7 Bills)</h3>
+      <canvas id="salesChart" height="100"></canvas>
+    </div>
+
+    <div class="bg-white rounded-xl shadow p-6">
+      <h3 class="text-xl font-semibold mb-4">Top 5 Products by Stock</h3>
+      <canvas id="stockChart" height="100"></canvas>
+    </div>
+  </div>
+
+  <script>
+    document.getElementById("navbar").innerHTML = `<nav class="bg-gradient-to-r from-blue-800 to-blue-600 text-white px-6 py-4 shadow-md flex justify-between items-center">
+      <h1 class="text-xl font-semibold tracking-wide">🛒 Sahjanand Mart</h1>
+      <div class="flex gap-4 text-sm">
+        <a href="billing.html" class="hover:underline">Billing</a>
+        <a href="inventory.html" class="hover:underline">Inventory</a>
+        <a href="add_product.html" class="hover:underline">Add Product</a>
+        <a href="edit_product.html" class="hover:underline">Edit Product</a>
+        <a href="bill_history.html" class="hover:underline">Bill History</a>
+        <a href="dashboard.html" class="hover:underline font-bold">Dashboard</a>
+      </div>
+    </nav>`;
+
+    async function loadDashboard() {
+      // Fetch bill data
+      const billRes = await fetch("/api/bills/");
+      const bills = await billRes.json();
+      const recent = bills.slice(-7);
+      const dates = recent.map(b => new Date(b.timestamp).toLocaleDateString());
+      const totals = recent.map(b => b.total);
+
+      // Sales Chart
+      new Chart(document.getElementById("salesChart").getContext("2d"), {
+        type: 'line',
+        data: {
+          labels: dates,
+          datasets: [{
+            label: 'Sales (₹)',
+            data: totals,
+            borderColor: '#2563eb',
+            backgroundColor: '#bfdbfe',
+            fill: true,
+            tension: 0.4
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: { display: false },
+            tooltip: { mode: 'index', intersect: false }
+          }
+        }
+      });
+
+      // Fetch product data
+      const productRes = await fetch("/api/products/");
+      const products = await productRes.json();
+      const topProducts = products.sort((a, b) => b.stock - a.stock).slice(0, 5);
+      const labels = topProducts.map(p => p.name);
+      const stocks = topProducts.map(p => p.stock);
+
+      // Stock Chart
+      new Chart(document.getElementById("stockChart").getContext("2d"), {
+        type: 'bar',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: 'Stock Quantity',
+            data: stocks,
+            backgroundColor: ['#2563eb', '#3b82f6', '#60a5fa', '#93c5fd', '#bfdbfe']
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: { display: false }
+          },
+          scales: {
+            y: { beginAtZero: true }
+          }
+        }
+      });
+    }
+
+    window.onload = loadDashboard;
+  </script>
+</body>
+</html>

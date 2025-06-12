@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<h1 class="text-3xl font-bold mb-6">Dashboard</h1>
+
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+    <div class="bg-white p-6 rounded-lg shadow">
+        <h3 class="text-gray-500">Today's Sales</h3>
+        <p class="text-3xl font-bold">₹<span id="todaySales">0.00</span></p>
+    </div>
+    <div class="bg-white p-6 rounded-lg shadow">
+        <h3 class="text-gray-500">Total Products</h3>
+        <p class="text-3xl font-bold"><span id="totalProducts">0</span></p>
+    </div>
+    <div class="bg-white p-6 rounded-lg shadow">
+        <h3 class="text-gray-500">Low Stock Items</h3>
+        <p class="text-3xl font-bold"><span id="lowStock">0</span></p>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <div class="bg-white p-6 rounded-lg shadow">
+        <h3 class="text-lg font-semibold mb-4">Sales This Week</h3>
+        <canvas id="salesChart"></canvas>
+    </div>
+    <div class="bg-white p-6 rounded-lg shadow">
+        <h3 class="text-lg font-semibold mb-4">Inventory by Category</h3>
+        <canvas id="inventoryChart"></canvas>
+    </div>
+</div>
+
+<div class="bg-white p-6 rounded-lg shadow mt-6">
+    <h3 class="text-lg font-semibold mb-4">Payment Methods</h3>
+    <canvas id="paymentChart"></canvas>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/charts.js') }}"></script>
+<script>
+    // Update the stats fetching
+    fetch('/api/stats')
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('todaySales').textContent = data.today_sales.toFixed(2);
+            document.getElementById('totalProducts').textContent = data.total_products;
+            document.getElementById('lowStock').textContent = data.low_stock;
+            
+            // Show low stock warning if needed
+            if (data.low_stock > 0) {
+                document.getElementById('lowStock').classList.add('text-red-600');
+            }
+        });
+</script>
+{% endblock %}
