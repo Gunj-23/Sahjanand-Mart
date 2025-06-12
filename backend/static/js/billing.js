@@ -21,6 +21,11 @@ document.addEventListener('DOMContentLoaded', function() {
     // Tax rate (5%)
     const TAX_RATE = 0.05;
 
+    // Barcode scanning variables
+    let barcodeBuffer = '';
+    let lastKeyTime = 0;
+    const BARCODE_DELAY = 50; // Max ms between keypresses to consider as barcode
+
     // Initialize receipt date
     updateReceiptDate();
 
@@ -42,6 +47,63 @@ document.addEventListener('DOMContentLoaded', function() {
         printPaymentMode.textContent = this.options[this.selectedIndex].text;
     });
 
+    // Wireless barcode scanner detection (NEW IMPLEMENTATION)
+    document.addEventListener('keydown', function(e) {
+        // Skip if user is typing in search or barcode input
+        if (document.activeElement === productSearch || document.activeElement === barcodeInput) {
+            return;
+        }
+
+        const currentTime = new Date().getTime();
+        
+        // Detect scanner input (rapid keystrokes)
+        if (currentTime - lastKeyTime < BARCODE_DELAY) {
+            barcodeBuffer += e.key;
+        } else {
+            barcodeBuffer = e.key; // Reset buffer
+        }
+        lastKeyTime = currentTime;
+
+        // Process when barcode is complete (8+ digits)
+        if (barcodeBuffer.length >= 8) {
+            e.preventDefault();
+            fetchWithErrorHandling(`/api/products?barcode=${barcodeBuffer}`, 'Product not found')
+                .then(product => {
+                    if (product) {
+                        addToCart(product);
+                        barcodeBuffer = ''; // Reset after successful scan
+                    } else {
+                        alert('Product not found');
+                    }
+                });
+        }
+    });
+
+    // Original manual barcode input (UNCHANGED)
+    scanQRBtn.addEventListener('click', function() {
+        barcodeInput.classList.toggle('hidden');
+        if (!barcodeInput.classList.contains('hidden')) {
+            barcodeInput.focus();
+        }
+    });
+
+    barcodeInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            const barcode = this.value.trim();
+            if (barcode) {
+                fetchWithErrorHandling(`/api/products?barcode=${barcode}`, 'Product not found')
+                    .then(product => {
+                        if (product) {
+                            addToCart(product);
+                            this.value = '';
+                            this.classList.add('hidden');
+                        }
+                    });
+            }
+        }
+    });
+
+    // ====== EVERYTHING BELOW THIS LINE REMAINS EXACTLY THE SAME ======
     // Product search functionality
     productSearch.addEventListener('input', debounce(function() {
         const searchTerm = this.value.trim();
@@ -74,32 +136,6 @@ document.addEventListener('DOMContentLoaded', function() {
             productList.classList.add('hidden');
         }
     }, 300));
-
-    // Barcode scanning functionality
-    scanQRBtn.addEventListener('click', function() {
-        barcodeInput.classList.toggle('hidden');
-        if (!barcodeInput.classList.contains('hidden')) {
-            barcodeInput.focus();
-        }
-    });
-
-    barcodeInput.addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') {
-            const barcode = this.value.trim();
-            if (barcode) {
-                fetchWithErrorHandling(`/api/products?barcode=${barcode}`, 'Product not found')
-                    .then(product => {
-                        if (product) {
-                            addToCart(product);
-                            this.value = '';
-                            this.classList.add('hidden');
-                        } else {
-                            alert('Product not found');
-                        }
-                    });
-            }
-        }
-    });
 
     // Cart functionality
     function addToCart(product) {

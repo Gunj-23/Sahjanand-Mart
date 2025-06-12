@@ -3,7 +3,6 @@ from db import init_db, get_db, close_db
 from datetime import datetime, timedelta, date
 import os
 import sqlite3
-
 basedir = os.path.abspath(os.path.dirname(__file__))
 
 app = Flask(__name__,
@@ -73,8 +72,21 @@ def products():
         search = request.args.get('search')
         
         if barcode:
+            # Strip any whitespace or newline characters that scanners might add
+            barcode = barcode.strip()
             product = db.execute('SELECT * FROM products WHERE barcode = ?', (barcode,)).fetchone()
-            return jsonify(dict(product)) if product else jsonify({'error': 'Product not found'}), 404
+            if product:
+                return jsonify({
+                    'success': True,
+                    'product': dict(product),
+                    'message': 'Product found'
+                })
+            else:
+                return jsonify({
+                    'success': False,
+                    'error': 'Product not found',
+                    'barcode': barcode
+                }), 404
         elif search:
             products = db.execute('SELECT * FROM products WHERE name LIKE ?', (f'%{search}%',)).fetchall()
         else:
@@ -111,6 +123,45 @@ def products():
         except sqlite3.Error as e:
             db.rollback()
             return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/scan', methods=['POST'])
+def handle_scan():
+    """Special endpoint for barcode scanner input"""
+    data = request.get_json()
+    if not data or 'barcode' not in data:
+        return jsonify({'success': False, 'error': 'No barcode provided'}), 400
+    
+    barcode = data['barcode'].strip()
+    db = get_db()
+    
+    # First try to find by exact barcode match
+    product = db.execute('SELECT * FROM products WHERE barcode = ?', (barcode,)).fetchone()
+    
+    if product:
+        return jsonify({
+            'success': True,
+            'product': dict(product),
+            'message': 'Product found by barcode'
+        })
+    
+    # If not found by barcode, try to find by ID (some scanners might send the product ID)
+    try:
+        product_id = int(barcode)
+        product = db.execute('SELECT * FROM products WHERE id = ?', (product_id,)).fetchone()
+        if product:
+            return jsonify({
+                'success': True,
+                'product': dict(product),
+                'message': 'Product found by ID'
+            })
+    except ValueError:
+        pass  # barcode is not a number
+    
+    return jsonify({
+        'success': False,
+        'error': 'Product not found',
+        'barcode': barcode
+    }), 404
 
 @app.route('/api/sale', methods=['POST'])
 def create_sale():

@@ -33,7 +33,9 @@
 
 <div class="bg-white p-6 rounded-lg shadow mt-6">
     <h3 class="text-lg font-semibold mb-4">Payment Methods</h3>
-    <canvas id="paymentChart"></canvas>
+    <div class="h-64 w-64 mx-auto">  <!-- Changed this line to make chart smaller -->
+        <canvas id="paymentChart"></canvas>
+    </div>
 </div>
 {% endblock %}
 
@@ -53,5 +55,38 @@
                 document.getElementById('lowStock').classList.add('text-red-600');
             }
         });
+
+    // Initialize payment chart
+    document.addEventListener('DOMContentLoaded', function() {
+        fetch('/api/payment-data')
+            .then(response => response.json())
+            .then(data => {
+                const ctx = document.getElementById('paymentChart').getContext('2d');
+                new Chart(ctx, {
+                    type: 'pie',
+                    data: {
+                        labels: data.labels,
+                        datasets: [{
+                            data: data.values,
+                            backgroundColor: [
+                                'rgba(59, 130, 246, 0.7)',
+                                'rgba(16, 185, 129, 0.7)',
+                                'rgba(139, 92, 246, 0.7)'
+                            ],
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'bottom'
+                            }
+                        }
+                    }
+                });
+            });
+    });
 </script>
 {% endblock %}
